@@ -203,6 +203,7 @@ function employeeByDept() {
                         'ID:  ' + res[i].role_id + '  ||  First Name: ' + res[i].first_name + '  ||  Last Name: ' + res[i].last_name
                     )
                 }
+                startProgram()
             })
         })
 }
