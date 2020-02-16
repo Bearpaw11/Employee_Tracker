@@ -1,5 +1,7 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const cTable = require('console.table');
+
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -119,7 +121,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 1
+                        role_id: 2
                     })
                     break;
                 case ('Lead Engineer'):
@@ -127,7 +129,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 2
+                        role_id: 3
                     })
                     break;
                 case ('Software Engineer'):
@@ -135,7 +137,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 2
+                        role_id: 4
                     })
                     break;
                 case ('Accountant'):
@@ -143,7 +145,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 3
+                        role_id: 5
                     })
                     break;
                 case ('Legal Team-Lead'):
@@ -151,7 +153,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 4
+                        role_id: 6
                     })
                     break;
                 case ('Lawyer'):
@@ -159,7 +161,7 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 4
+                        role_id: 7
                     })
                     break;
                 }
@@ -168,11 +170,12 @@ function addEmployee() {
 }
 //view all employees
 function viewAll() {
-    const query = 'SELECT * FROM employee';
-    connection.query(query, function (err, res) {
+    const query = 'SELECT employee.id, employee.first_name, employee.last_name, employee.manager_name FROM' 
+    connection.query(query,function (err, res) {
+        console.log("this is the response" + res)
         for (let i = 0; i < res.length; i++) {
 
-            console.log('ID:  ' + res[i].id + '  ||  First Name:' + res[i].first_name + '  ||  Last Name:  ' + res[i].last_name + '  ||  Role ID:  ' + res[i].role_id)
+            console.table([{ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name,manager_name: res[i].manager_name}])
         }
         startProgram()    
     })
@@ -207,6 +210,135 @@ function employeeByDept() {
             })
         })
 }
+
+
+function updateEmployeeRole() {
+    const query = 'SELECT * FROM employee';
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        inquirer
+            .prompt([{
+                type: 'list',
+                name: 'update',
+                message: 'Which employee would you like to update?',
+                choices: function () {
+                    const employeeArr = [];
+                    for (let i = 0; i < res.length; i++) {
+                        employeeArr.push(res[i].first_name + ' ' + res[i].last_name) + ' ' + res[i].id;
+                    }
+                    return employeeArr;
+                }
+               
+            },
+            {
+                type: 'list',
+                name: 'title',
+                message: 'What is their new title?',
+                choices: [
+                    'Sales Lead',
+                    'Sales Person',
+                    'Lead Engineer',
+                    'Software Engineer',
+                    'Accountant',
+                    'Legal Team-Lead',
+                    'Lawyer'
+                ]
+            }
+        ]).then(answers => {
+            let newAnswers = answers.update.split(' ');
+            let updateID = newAnswers[2];
+            switch (answers.title) {
+                case ('Sales Lead'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 1
+                    })
+                    break;
+                case ('Sales Person'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 2
+                    })
+                    break;
+                case ('Lead Engineer'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 3
+                    })
+                    break;
+                case ('Software Engineer'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 4
+                    })
+                    break;
+                case ('Accountant'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 5
+                    })
+                    break;
+                case ('Legal Team-Lead'):
+                    connection.query(
+                        'INSERT INTO employee SET ?', {
+                        first_name: answers.first,
+                        last_name: answers.last,
+                        role_id: 6
+                    })
+                    break;
+                case ('Lawyer'):
+                   let role = 7
+                   function run(){
+                        connection.query(
+                           "UPDATE employee SET ? WHERE ?",
+                           [
+                               {
+                                   role_id: role
+                                },
+                                {
+                                    id: updateID
+                                }
+                            ], function(err,res) {
+                                console.log('working')
+                            })
+                            //    const query= 'UPDATE employee SET role_id = ? WHERE id =?'
+                            //    connection.query(query, [role, updateID], function(err, res){
+                                //        console.log("it worked")
+                                //    })
+                                
+                            } }
+                            run()
+    
+            
+            })
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
 
