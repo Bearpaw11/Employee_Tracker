@@ -109,7 +109,7 @@ function addEmployee() {
         },  
         {
             type: 'list',
-            name: 'manager name',
+            name: 'manager',
             message: 'Who is their manager?',
             choices: managerArray
 
@@ -122,7 +122,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 1
+                        role_id: 1,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Sales Person'):
@@ -130,7 +131,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 2
+                        role_id: 2,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Lead Engineer'):
@@ -138,7 +140,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 3
+                        role_id: 3,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Software Engineer'):
@@ -146,7 +149,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 4
+                        role_id: 4,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Accountant'):
@@ -154,7 +158,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 5
+                        role_id: 5,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Legal Team-Lead'):
@@ -162,7 +167,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 6
+                        role_id: 6,
+                        manager_name: answers.manager
                     })
                     break;
                 case ('Lawyer'):
@@ -170,7 +176,8 @@ function addEmployee() {
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
                         last_name: answers.last,
-                        role_id: 7
+                        role_id: 7,
+                        manager_name: answers.manager
                     })
                     break;
                 }
@@ -207,7 +214,7 @@ function employeeByDept() {
             }
         ]).then(answers => {
             const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)';
-            connection.query(query, [answers.dept], function (err, res) {
+            connection.query(query, function (err, res) {
                 console.log('There are ' + res.length + ' employees in this dept!')
                 for (let i = 0; i < res.length; i++) {
                     console.table(
@@ -218,6 +225,8 @@ function employeeByDept() {
             })
         })
 }
+
+// View employees and their manager
 
 function employeeByManager(){
     
@@ -342,6 +351,7 @@ function updateEmployeeRole() {
     })
 }
 
+//remove an employee
 
 function removeEmployee() {
 
@@ -374,14 +384,24 @@ function removeEmployee() {
                     {
                         id: id
 
-                    })
+                    }) 
                     startProgram()
             })
     })
 }
 
 
+//view all the current roles
+function viewAllRoles() {
+    const query = 'SELECT role.title FROM employee INNER JOIN role ON employee.role_id = role.id' 
+    connection.query(query,function (err, res) {
+        for (let i = 0; i < res.length; i++) {
 
+            console.table([{title: res[i].title}])
+        }
+        startProgram()    
+    })
+}
 
 
 
