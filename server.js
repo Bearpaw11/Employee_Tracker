@@ -77,7 +77,7 @@ function startProgram() {
 
 // add employees function
 
-
+let managerArray = ['Not listed']
 
 function addEmployee() {
     console.log('working')
@@ -106,9 +106,18 @@ function addEmployee() {
                 'Legal Team-Lead',
                 'Lawyer'
             ]
-        }]).then(answers => {
+        },  
+        {
+            type: 'list',
+            name: 'manager name',
+            message: 'Who is their manager?',
+            choices: managerArray
+
+        }
+    ]).then(answers => {
             switch (answers.title) {
                 case ('Sales Lead'):
+                    managerArray.push(answers.first + " " + answers.last)
                     connection.query(
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
@@ -170,12 +179,11 @@ function addEmployee() {
 }
 //view all employees
 function viewAll() {
-    const query = 'SELECT employee.id, employee.first_name, employee.last_name, employee.manager_name FROM' 
+    const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)'
     connection.query(query,function (err, res) {
-        console.log("this is the response" + res)
         for (let i = 0; i < res.length; i++) {
 
-            console.table([{ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name,manager_name: res[i].manager_name}])
+            console.table([{id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name, manager_name: res[i].manager_name}])
         }
         startProgram()    
     })
@@ -198,12 +206,12 @@ function employeeByDept() {
                 ]
             }
         ]).then(answers => {
-            const query = 'SELECT employee.role_id, employee.first_name, employee.last_name FROM employee INNER JOIN department ON (employee.role_id = department.id) WHERE (department.name = ?)';
+            const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)';
             connection.query(query, [answers.dept], function (err, res) {
                 console.log('There are ' + res.length + ' employees in this dept!')
                 for (let i = 0; i < res.length; i++) {
-                    console.log(
-                        'ID:  ' + res[i].role_id + '  ||  First Name: ' + res[i].first_name + '  ||  Last Name: ' + res[i].last_name
+                    console.table(
+                        ([{ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name}])
                     )
                 }
                 startProgram()
@@ -211,7 +219,17 @@ function employeeByDept() {
         })
 }
 
-
+function employeeByManager(){
+    
+        const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)'
+        connection.query(query,function (err, res) {
+            for (let i = 0; i < res.length; i++) {
+    
+                console.table([{id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, manager_name: res[i].manager_name}])
+            }
+            startProgram()    
+        })
+    }
 function updateEmployeeRole() {
     const query = 'SELECT * FROM employee';
     connection.query(query, function (err, res) {
@@ -325,9 +343,42 @@ function updateEmployeeRole() {
 }
 
 
+function removeEmployee() {
+
+    const query = 'SELECT * FROM employee';
+    connection.query(query, function (err, res) {
+        if (err) throw err;
 
 
+        inquirer
+            .prompt([{
+                type: 'list',
+                name: 'remove',
+                message: 'Which employee would you like to remove?',
+                choices: function () {
+                    const employeeArr = [];
+                    // const employeeId = [];
+                    for (let i = 0; i < res.length; i++) {
+                        employeeArr.push(res[i].first_name + ' ' + res[i].last_name + ' ' + res[i].id);
 
+                    }
+                    return (employeeArr);
+
+                }
+
+            }]).then(answers => {
+                let newAnswer = answers.remove.split(' ')
+                let id = newAnswer[2]
+                
+                connection.query('DELETE FROM employee WHERE ?',
+                    {
+                        id: id
+
+                    })
+                    startProgram()
+            })
+    })
+}
 
 
 
