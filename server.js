@@ -77,9 +77,12 @@ function startProgram() {
 
 // add employees function
 
-let managerArray = ['Not listed']
+
 
 function addEmployee() {
+    const query = 'SELECT * FROM employee WHERE employee.role_id IN (1,3,6)';
+    connection.query(query, function (err, res) {
+        if (err) throw err;
     console.log('working')
     inquirer
         .prompt([{
@@ -104,20 +107,25 @@ function addEmployee() {
                 'Software Engineer',
                 'Accountant',
                 'Legal Team-Lead',
-                'Lawyer'
+                'Lawyer',
+                new inquirer.Separator()
             ]
         },  
         {
             type: 'list',
             name: 'manager',
             message: 'Who is their manager?',
-            choices: managerArray
+            choices: function () {
+                let managerArray = ['Not listed']
+                for (let i = 0; i < res.length; i++) {
+                    managerArray.push(res[i].first_name + ' ' + res[i].last_name);
+                }
+                return (managerArray);
+            }
 
-        }
-    ]).then(answers => {
+    }]).then(answers => {
             switch (answers.title) {
                 case ('Sales Lead'):
-                    managerArray.push(answers.first + " " + answers.last)
                     connection.query(
                         'INSERT INTO employee SET ?', {
                         first_name: answers.first,
@@ -183,20 +191,23 @@ function addEmployee() {
                 }
                 startProgram()    
         })
+    })
 }
-//view all employees
+//view all employees------------------------------------------------------
 function viewAll() {
+    let listArr =[]
     const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)'
     connection.query(query,function (err, res) {
         for (let i = 0; i < res.length; i++) {
-
-            console.table([{id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name, manager_name: res[i].manager_name}])
+            listArr.push({id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name, manager_name: res[i].manager_name})
+            
         }
+        console.table(listArr)
         startProgram()    
     })
 }
 
-//view all employees by dept.
+//view all employees by dept.-------------------------------------------------
 
 function employeeByDept() {
     inquirer
@@ -213,32 +224,56 @@ function employeeByDept() {
                 ]
             }
         ]).then(answers => {
-            const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)';
-            connection.query(query, function (err, res) {
+            const query = 'SELECT employee.role_id, employee.first_name, employee.last_name, department.name FROM employee INNER JOIN department ON (employee.role_id = department.id) WHERE (department.name = ?)';
+            let listArr =[]
+            connection.query(query,[answers.dept], function (err, res) {
                 console.log('There are ' + res.length + ' employees in this dept!')
                 for (let i = 0; i < res.length; i++) {
-                    console.table(
-                        ([{ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name}])
-                    )
-                }
+                    listArr.push({first_name: res[i].first_name, last_name: res[i].last_name, department: res[i].name,})
+                    }
+                console.table(listArr)
                 startProgram()
             })
         })
 }
 
-// View employees and their manager
+// View employees by manager--------------------------------------------------------
 
 function employeeByManager(){
-    
-        const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, employee.manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id)'
-        connection.query(query,function (err, res) {
-            for (let i = 0; i < res.length; i++) {
-    
-                console.table([{id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, manager_name: res[i].manager_name}])
-            }
-            startProgram()    
+    const query = 'SELECT * FROM employee WHERE employee.role_id IN (1,3,6)';
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+    inquirer
+        .prompt([
+            {
+                name: 'manager',
+                type: 'list',
+                message: 'Which Manger\'s Employees do you wan to see?',
+                choices: function () {
+                    let managerArray = []
+                    for (let i = 0; i < res.length; i++) {
+                        managerArray.push(res[i].first_name + ' ' + res[i].last_name);
+                    }
+                    return (managerArray);
+                }
+        }]).then(answers => {
+            const query = 'SELECT employee.first_name, employee.last_name, employee.manager_name FROM employee WHERE employee.manager_name = ?';
+            let listArr =[]
+            connection.query(query,[answers.manager], function (err, res) {
+                console.log(answers.manager + " has " + res.length + ' employee(s)')
+                for (let i = 0; i < res.length; i++) {
+                    listArr.push({first_name: res[i].first_name,last_name: res[i].last_name})
+                }
+                console.table(listArr)
+
+                startProgram()
+            })
         })
-    }
+    })
+}
+
+// Update employee role------------------------------------
+
 function updateEmployeeRole() {
     const query = 'SELECT * FROM employee';
     connection.query(query, function (err, res) {
@@ -393,12 +428,14 @@ function removeEmployee() {
 
 //view all the current roles
 function viewAllRoles() {
+    let listArr =[]
     const query = 'SELECT role.title FROM employee INNER JOIN role ON employee.role_id = role.id' 
     connection.query(query,function (err, res) {
         for (let i = 0; i < res.length; i++) {
 
-            console.table([{title: res[i].title}])
+            listArr.push({Roles: res[i].title})
         }
+        console.table(listArr)
         startProgram()    
     })
 }
