@@ -91,7 +91,7 @@ function addEmployee() {
     const query = 'SELECT * FROM employee';
     connection.query(query, function(err, res) {
         if (err) throw err;
-        console.log('working')
+        
         inquirer
             .prompt([{
                     type: 'input',
@@ -226,8 +226,9 @@ function updateEmployeeRole() {
                     choices: function() {
                         const employeeArr = [];
                         for (let i = 0; i < res.length; i++) {
-                            employeeArr.push(res[i].first_name + ' ' + res[i].last_name) + ' ' + res[i].id;
+                            employeeArr.push(res[i].first_name + ' ' + res[i].last_name + ' ' + res[i].id);
                         }
+                        
                         return employeeArr;
                     }
 
@@ -400,10 +401,10 @@ async function getRoles() {
         //empoyee choces
     query = 'SELECT * FROM employee'
     data = await connection.query(query)
-    console.log(data)
+    
 
-    employeeChoices = data.map(({ id, last_name }) => ({
-        name: last_name,
+    employeeChoices = data.map(({ id, first_name, last_name }) => ({
+        name:  first_name + " " + last_name,
         value: id
     }))
 
