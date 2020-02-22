@@ -88,7 +88,7 @@ function startProgram() {
 
 
 function addEmployee() {
-    const query = 'SELECT * FROM employee WHERE employee.role_id IN (1,3,6)';
+    const query = 'SELECT * FROM employee';
     connection.query(query, function(err, res) {
         if (err) throw err;
         console.log('working')
@@ -137,11 +137,7 @@ function addEmployee() {
 function viewAll() {
     let listArr = []
     const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, CONCAT(manager.first_name, " ", manager.last_name) as manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id)'
-    
-
-    
-    
-    connection.query(query, function(err, res) {console.log(res)
+    connection.query(query, function(err, res) {
         for (let i = 0; i < res.length; i++) {
             listArr.push({ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name, manager_name: res[i].manager_name })
 
@@ -182,7 +178,7 @@ function employeeByDept() {
 // View employees by manager--------------------------------------------------------
 
 function employeeByManager() {
-    const query = 'SELECT * FROM employee WHERE employee.role_id IN (1,3,6)';
+    const query = 'SELECT CONCAT(manager.first_name, " ", manager.last_name, " ", employee.id) as manager_name FROM (employee LEFT JOIN employee manager on manager.id = employee.manager_id)';
     connection.query(query, function(err, res) {
         if (err) throw err;
         inquirer
@@ -192,25 +188,28 @@ function employeeByManager() {
                 message: 'Which Manger\'s Employees do you wan to see?',
                 choices: function() {
                     let managerArray = []
+                    
                     for (let i = 0; i < res.length; i++) {
-                        managerArray.push(res[i].first_name + ' ' + res[i].last_name);
+                       if(res[i].manager_name !== null){
+                            managerArray.push(res[i].manager_name);
+                       }
+                           
                     }
                     return (managerArray);
                 }
             }]).then(answers => {
-                const query = 'SELECT employee.first_name, employee.last_name, employee.manager_name FROM employee WHERE employee.manager_name = ?';
-                let listArr = []
-                connection.query(query, [answers.manager], function(err, res) {
-                    console.log(answers.manager + " has " + res.length + ' employee(s)')
-                    for (let i = 0; i < res.length; i++) {
-                        listArr.push({ first_name: res[i].first_name, last_name: res[i].last_name })
-                    }
-                    console.table(listArr)
+                let newAnswer = answers.manager.split(' ')
+                let id = newAnswer[2]
 
-                    startProgram()
+                connection.query('SELECT employee.first_name, employee.last_name FROM employee WHERE manager_id = ?', {
+                    id: id
+                })
+                
+                
+                startProgram()
                 })
             })
-    })
+  
 }
 
 // Update employee role------------------------------------
@@ -314,11 +313,7 @@ function updateEmployeeRole() {
                                     function(err, res) {
                                         console.log('working')
                                     })
-                                //    const query= 'UPDATE employee SET role_id = ? WHERE id =?'
-                                //    connection.query(query, [role, updateID], function(err, res){
-                                //        console.log("it worked")
-                                //    })
-
+                               
                         }
                 }
                 run()
@@ -395,26 +390,17 @@ async function getRoles() {
     // rolechoices
     let query = 'SELECT * FROM role'
     let data = await connection.query(query)
-        //  console.log(data)
-
+       
     rolesChoices = data.map(({ id, title }) => ({
         name: title,
         value: id
     }))
 
-    // departmentChoes
-    //  query = 'SELECT * FROM department'
-    //  data =  await connection.query(query)
-
- 
-    //   departmentChoices = data.map(({id,name}) =>({
-    //        name:name, value:id})
-    //         )
-
+   
         //empoyee choces
     query = 'SELECT * FROM employee'
     data = await connection.query(query)
-        //  console.log(data)
+    console.log(data)
 
     employeeChoices = data.map(({ id, last_name }) => ({
         name: last_name,
