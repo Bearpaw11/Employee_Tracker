@@ -257,8 +257,6 @@ function updateEmployeeRole() {
                 let updateID = newAnswers[2];
                 let title = answers.title.split(' ');
                 let newTitle = title[2]
-                console.log(updateID)
-                console.log(newTitle)
 
                 const query = connection.query(
                     "UPDATE employee SET ? WHERE ?",
@@ -277,13 +275,6 @@ function updateEmployeeRole() {
                     }
                   );
 
-                // const query= 'UPDATE employee SET role_id = ?, WHERE id = ?'
-                // connection.query(query, [newTitle] [updateID], function(err, res) {
-                //         console.log(res)
-                //         console.log("Employee Role has Been updated")
-                //         startProgram()
-                //     })
-
             })
     })
 }
@@ -291,8 +282,56 @@ function updateEmployeeRole() {
 //Update Employee Manager
 
 function updateEmployeeManager() {
+    const query = 'SELECT * FROM employee';
+    connection.query(query, function(err, res) {
+        if (err) throw err;
+        inquirer
+            .prompt([{
+                    type: 'list',
+                    name: 'update',
+                    message: 'Which employee\'s manager would you like to update?',
+                    choices: function() {
+                        const employeeArr = [];
+                        for (let i = 0; i < res.length; i++) {
+                            employeeArr.push(res[i].first_name + ' ' + res[i].last_name + ' ' + res[i].id);
+                        }
+                        
+                        return employeeArr;
+                    }
 
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: 'Who is their new manager?',
+                    choices: employeeChoices
+                }
+            ]).then(answers => {
+                let newAnswers = answers.update.split(' ');
+                let updateID = newAnswers[2];
+               
+
+                const query = connection.query(
+                    "UPDATE employee SET ? WHERE ?",
+                    [
+                      {
+                        manager_id: answers.manager
+                      },
+                      {
+                        id: updateID
+                      }
+                    ],
+                    function(err, res) {
+                      if (err) throw err;
+                      console.log("Employee Manager has Been updated")
+                      startProgram();
+                    }
+                  );
+
+            })
+    })
 }
+
 
 //remove an employee
 
