@@ -178,20 +178,22 @@ function employeeByDept() {
 // View employees by manager--------------------------------------------------------
 
 function employeeByManager() {
-    const query = 'SELECT CONCAT(manager.first_name, " ", manager.last_name, " ", employee.id) as manager_name FROM (employee LEFT JOIN employee manager on manager.id = employee.manager_id)';
+    const query = 'SELECT CONCAT(manager.first_name, " ", manager.last_name, " ", manager.id) as manager_name FROM (employee LEFT JOIN employee manager on manager.id = employee.manager_id)';
+    
     connection.query(query, function(err, res) {
         if (err) throw err;
         inquirer
             .prompt([{
                 name: 'manager',
                 type: 'list',
-                message: 'Which Manger\'s Employees do you wan to see?',
+                message: 'Which Manger\'s Employees do you want to see?',
                 choices: function() {
                     let managerArray = []
-                    
+                    const newManger=[]
                     for (let i = 0; i < res.length; i++) {
                        if(res[i].manager_name !== null){
                             managerArray.push(res[i].manager_name);
+                            console.log(managerArray)
                        }
                            
                     }
@@ -199,15 +201,18 @@ function employeeByManager() {
                 }
             }]).then(answers => {
                 let newAnswer = answers.manager.split(' ')
-                let id = newAnswer[2]
-
-                connection.query('SELECT employee.first_name, employee.last_name FROM employee WHERE manager_id = ?', {
-                    id: id
-                })
+        let id = newAnswer[2]
+       
+        const query = 'SELECT employee.first_name, employee.last_name FROM employee WHERE manager_id = ?'
+        let newTable = []
+        connection.query(query, [id], function (err, res) {
+            for (i = 0; i<res.length; i++){
+           newTable.push(res[i])}
+           console.table(newTable)
+           startProgram()
+        })
                 
-                
-                startProgram()
-                })
+    })
             })
   
 }
@@ -238,90 +243,55 @@ function updateEmployeeRole() {
                     name: 'title',
                     message: 'What is their new title?',
                     choices: [
-                        'Sales Lead',
-                        'Sales Person',
-                        'Lead Engineer',
-                        'Software Engineer',
-                        'Accountant',
-                        'Legal Team-Lead',
-                        'Lawyer'
+                        'Sales Lead 1',
+                        'Sales Person 2',
+                        'Lead Engineer 3',
+                        'Software Engineer 4',
+                        'Accountant - 5' ,
+                        'Legal Team-Lead 6',
+                        'Lawyer - 7'
                     ]
                 }
             ]).then(answers => {
                 let newAnswers = answers.update.split(' ');
                 let updateID = newAnswers[2];
-                switch (answers.title) {
-                    case ('Sales Lead'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 1
-                            })
-                        break;
-                    case ('Sales Person'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 2
-                            })
-                        break;
-                    case ('Lead Engineer'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 3
-                            })
-                        break;
-                    case ('Software Engineer'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 4
-                            })
-                        break;
-                    case ('Accountant'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 5
-                            })
-                        break;
-                    case ('Legal Team-Lead'):
-                        connection.query(
-                            'INSERT INTO employee SET ?', {
-                                first_name: answers.first,
-                                last_name: answers.last,
-                                role_id: 6
-                            })
-                        break;
-                    case ('Lawyer'):
-                        let role = 7
+                let title = answers.title.split(' ');
+                let newTitle = title[2]
+                console.log(updateID)
+                console.log(newTitle)
 
-                        function run() {
-                            connection.query(
-                                    "UPDATE employee SET ? WHERE ?", [{
-                                            role_id: role
-                                        },
-                                        {
-                                            id: updateID
-                                        }
-                                    ],
-                                    function(err, res) {
-                                        console.log('working')
-                                    })
-                               
-                        }
-                }
-                run()
+                const query = connection.query(
+                    "UPDATE employee SET ? WHERE ?",
+                    [
+                      {
+                        role_id: newTitle
+                      },
+                      {
+                        id: updateID
+                      }
+                    ],
+                    function(err, res) {
+                      if (err) throw err;
+                      console.log("Employee Role has Been updated")
+                      startProgram();
+                    }
+                  );
 
+                // const query= 'UPDATE employee SET role_id = ?, WHERE id = ?'
+                // connection.query(query, [newTitle] [updateID], function(err, res) {
+                //         console.log(res)
+                //         console.log("Employee Role has Been updated")
+                //         startProgram()
+                //     })
 
             })
     })
+}
+
+//Update Employee Manager
+
+function updateEmployeeManager() {
+
 }
 
 //remove an employee
