@@ -40,6 +40,7 @@ function startProgram() {
                 'View all employees',
                 'View all employees by dept.',
                 'View all employees by manager',
+                'Add a Department',
                 'Add employee',
                 'Remove employee',
                 'Update employee role',
@@ -58,6 +59,10 @@ function startProgram() {
 
                 case "View all employees by manager":
                     employeeByManager();
+                    break;
+
+                case "Add a Department":
+                    addDepartment();
                     break;
 
                 case "Add employee":
@@ -83,10 +88,30 @@ function startProgram() {
 
 }
 
-// add employees function
 
+// add a department
 
+function addDepartment() {
+inquirer 
+.prompt([{
+type: 'input',
+name: 'department',
+message: 'What is the name of the new department?'
 
+}]).then(answers => {
+    
+      
+    connection.query(
+            'INSERT INTO department SET ?', {
+            name: answers.department
+        })
+        console.log('department has been added')
+        startProgram()
+     
+})
+}
+
+// add employees function------------------------------------------------
 function addEmployee() {
     const query = 'SELECT * FROM employee';
     connection.query(query, function(err, res) {
@@ -119,8 +144,7 @@ function addEmployee() {
 
                 }
             ]).then(answers => {
-                console.log(answers)
-                  
+               
                 connection.query(
                         'INSERT INTO employee SET ?', {
                             first_name: answers.first,
@@ -128,6 +152,7 @@ function addEmployee() {
                             role_id: answers.title,
                             manager_id: answers.manager
                         })
+                        console.log('Employee has been added')
                 getRoles()
                  
             })
@@ -138,6 +163,7 @@ function viewAll() {
     let listArr = []
     const query = 'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name, CONCAT(manager.first_name, " ", manager.last_name) as manager_name FROM ((employee INNER JOIN role ON employee.role_id = role.id) INNER JOIN  department ON role.department_id = department.id LEFT JOIN employee manager on manager.id = employee.manager_id)'
     connection.query(query, function(err, res) {
+        
         for (let i = 0; i < res.length; i++) {
             listArr.push({ id: res[i].id, first_name: res[i].first_name, last_name: res[i].last_name, title: res[i].title, department: res[i].name, manager_name: res[i].manager_name })
 
@@ -150,17 +176,25 @@ function viewAll() {
 //view all employees by dept.-------------------------------------------------
 
 function employeeByDept() {
+    const query = 'SELECT name FROM department'
+    connection.query(query, function(err, res) {
+        if (err) throw err;
     inquirer
         .prompt([{
             name: 'dept',
             type: 'list',
             message: 'Which dept would you like to see?',
-            choices: [
-                'Sales',
-                'Engineering',
-                'Finance',
-                'Legal'
-            ]
+            choices: function() {
+                let departmentArray = []
+                for (let i = 0; i < res.length; i++) {
+                   
+                        departmentArray.push(res[i].name);
+                       
+                   
+                       
+                }
+                return (departmentArray);
+            }
         }]).then(answers => {
             const query = 'SELECT employee.role_id, employee.first_name, employee.last_name, department.name FROM employee INNER JOIN department ON (employee.role_id = department.id) WHERE (department.name = ?)';
             let listArr = []
@@ -173,6 +207,7 @@ function employeeByDept() {
                 startProgram()
             })
         })
+    })
 }
 
 // View employees by manager--------------------------------------------------------
@@ -193,7 +228,6 @@ function employeeByManager() {
                     for (let i = 0; i < res.length; i++) {
                        if(res[i].manager_name !== null){
                             managerArray.push(res[i].manager_name);
-                            console.log(managerArray)
                        }
                            
                     }
@@ -366,6 +400,7 @@ function removeEmployee() {
                     id: id
 
                 })
+                console.log("Employee has been removed")
                 startProgram()
             })
     })
